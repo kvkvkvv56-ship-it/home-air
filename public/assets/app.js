@@ -61,12 +61,21 @@
 
   async function fetchJSON(paths) {
     for (const url of paths) {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 5000);
       try {
-        const res = await fetch(url, { cache: "no-store" });
+        const res = await fetch(url, {
+          cache: "no-store",
+          signal: ctrl.signal,
+        });
         if (!res.ok) continue;
-        return await res.json();
+        const data = await res.json();
+        clearTimeout(timer);
+        return data;
       } catch (_) {
-        /* 试下一个 */
+        /* 超时或失败：试下一个来源 */
+      } finally {
+        clearTimeout(timer);
       }
     }
     return null;
