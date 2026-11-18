@@ -7,6 +7,12 @@
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
+  /* 空值安全的文本写入（元素可能因精简而被移除） */
+  function setText(sel, value) {
+    const n = $(sel);
+    if (n && value !== undefined && value !== null) n.textContent = value;
+  }
+
   const TZ = "Asia/Shanghai";
   const PM25_LIMIT = 35; // GB 3095-2012 一级限值
   const STALE_MS = 20 * 60 * 1000; // 超过 20 分钟未更新视为陈旧
@@ -250,35 +256,10 @@
     $("#stat-temp").textContent = fmt(ind.temperature_c, 1);
     $("#stat-humid").textContent = fmt(ind.humidity, 0);
 
-    $("#stat-pm25-note").textContent = isNum(s24.min)
-      ? `24h 区间 ${fmt(s24.min, 1)} – ${fmt(s24.max, 1)}`
-      : "—";
-    $("#stat-level-note").textContent =
-      pm === null || pm === undefined
-        ? "—"
-        : pm < 35
-        ? "低于一级限值 35"
-        : `超出限值 ${fmt(pm - 35, 1)}`;
-    $("#stat-temp-note").textContent = isNum(ind.temperature_f)
-      ? `${fmt(ind.temperature_f, 1)} °F`
-      : "—";
-    $("#stat-humid-note").textContent =
-      isNum(ind.humidity) && ind.humidity < 35
-        ? "偏干燥（< 35%）"
-        : isNum(ind.humidity) && ind.humidity > 60
-        ? "偏潮湿（> 60%）"
-        : "舒适区间";
-
-    // 陈旧提示
-    const stale = isNum(latest.updated_ts)
-      ? Date.now() / 1000 - latest.updated_ts > STALE_MS / 1000
-      : true;
-    const dot = $("#tz-dot");
-    if (dot) {
-      dot.className = "dot " + (stale ? "stale" : "");
-      const s = $("#tz-status");
-      if (s) s.textContent = stale ? "室内数据可能延迟" : "室内数据正常";
-    }
+    setText(
+      "#stat-pm25-note",
+      isNum(s24.min) ? `${fmt(s24.min, 1)}–${fmt(s24.max, 1)}` : ""
+    );
 
     document.body.dataset.loading = "false";
   }
@@ -339,7 +320,7 @@
       const dot = $("#tz-dot");
       if (dot) dot.className = "dot live";
       const st = $("#tz-status");
-      if (st) st.textContent = "室外数据正常";
+      if (st) st.textContent = "正常";
 
       // 对照区
       const oPm = c.pm2_5;
@@ -355,15 +336,11 @@
       if (barIn) barIn.style.width = `${((indoorPm || 0) / peak) * 100}%`;
       if (barOut) barOut.style.width = `${((oPm || 0) / peak) * 100}%`;
 
-      if (isNum(oPm) && isNum(indoorPm) && indoorPm > 0 && oPm > indoorPm) {
-        $("#compare-lede").textContent =
-          `同一时刻，室外 PM2.5 约为室内的 ${(oPm / indoorPm).toFixed(1)} 倍。`;
-      }
     } catch (err) {
       const dot = $("#tz-dot");
       if (dot) dot.className = "dot down";
       const st = $("#tz-status");
-      if (st) st.textContent = `室外数据不可用（${err.message}）`;
+      if (st) st.textContent = "不可用";
       ["#tz-pm25", "#tz-pm10", "#tz-o3", "#tz-no2", "#tz-so2", "#tz-co", "#tz-aqi", "#tz-eaqi"].forEach(
         (s) => {
           const n = $(s);
@@ -418,25 +395,13 @@
   async function boot() {
     initInteractions();
 
-    // 数据来源优先级：
-    //   1. Cloudflare KV（实时，已开 CORS）—— 任何地方部署都能读到最新
-    //   2. 同源静态文件 —— 本地开发 / Cloudflare 自托管时直接用
-    //   3. jsDelivr —— 最后兜底（国内可达；不用 raw.githubusercontent.com，
-    //      那个域名在国内容易被限速/超时）
-    const LIVE = "https://home.kvkvkvv.site/data";
+    // 同源静态文件优先：秒开首屏。
+    // KV 是实时源，但域名未就绪/被墙时会等超时 —— 不能让它挡住第一次渲染。
     const GH =
       "https://cdn.jsdelivr.net/gh/kvkvkvv56-ship-it/home-air@main/public/data";
 
-    const latest = await fetchJSON([
-      `${LIVE}/latest.json`,
-      "./data/latest.json",
-      `${GH}/latest.json`,
-    ]);
-    const history = await fetchJSON([
-      `${LIVE}/history.json`,
-      "./data/history.json",
-      `${GH}/history.json`,
-    ]);
+    const latest = await fetchJSON(["./data/latest.json", `${GH}/latest.json`]);
+    const history = await fetchJSON(["./data/history.json", `${GH}/history.json`]);
 
     if (latest) {
       renderIndoor(latest);
@@ -444,14 +409,26 @@
       loadTongzhou(latest.indoor ? latest.indoor.pm25 : null);
     } else {
       document.body.dataset.loading = "false";
-      const h = $("#hero-pm25");
-      if (h) h.textContent = "—";
-      setBadge("#707070", "数据不可用");
+      setBadge("#707070", "—");
       loadTongzhou(null);
     }
 
-    // 每 5 分钟刷新一次
+    // 后台拉实时源（KV），比静态副本新就重绘
+    refreshLive(latest);
+
     setTimeout(boot, 5 * 60 * 1000);
+  }
+
+  async function refreshLive(current) {
+    const LIVE = "https://home.kvkvkvv.site/data";
+    const live = await fetchJSON([`${LIVE}/latest.json`]);
+    if (!live || !isNum(live.updated_ts)) return;
+    const curTs = current && isNum(current.updated_ts) ? current.updated_ts : 0;
+    if (live.updated_ts <= curTs) return;
+    renderIndoor(live);
+    loadTongzhou(live.indoor ? live.indoor.pm25 : null);
+    const hist = await fetchJSON([`${LIVE}/history.json`]);
+    if (hist) renderHistory(hist, live);
   }
 
   if (document.readyState === "loading") {
