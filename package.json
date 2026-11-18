@@ -1,0 +1,19 @@
+{
+  "name": "home-air",
+  "version": "1.0.0",
+  "private": true,
+  "description": "家庭空气质量仪表盘 — 室内 PM2.5 长期归档 + 北京通州实时对照",
+  "type": "module",
+  "scripts": {
+    "export": "python3 scripts/export_data.py",
+    "dev": "wrangler dev",
+    "deploy:cf": "wrangler deploy",
+    "deploy:vercel": "vercel deploy --prod",
+    "sync": "bash scripts/sync.sh",
+    "kv": "bash scripts/push_kv.sh",
+    "serve": "python3 -m http.server 8788 --bind 127.0.0.1 --directory public"
+  },
+  "devDependencies": {
+    "wrangler": "^4.112.0"
+  }
+}

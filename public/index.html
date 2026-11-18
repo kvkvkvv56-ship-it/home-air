@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ffffff" />
+    <title>Home Air — 家庭空气质量</title>
+    <meta
+      name="description"
+      content="家中空气净化器 PM2.5、温湿度实时读数与长期趋势归档，并对照北京通州实时空气质量。"
+    />
+    <link rel="stylesheet" href="./assets/style.css" />
+    <link rel="preconnect" href="https://air-quality-api.open-meteo.com" />
+    <script src="./assets/app.js" defer></script>
+  </head>
+  <body data-loading="true">
+    <a class="skip-link" href="#main">跳到主要内容</a>
+
+    <div class="grid-guides" aria-hidden="true">
+      <span></span><span></span><span></span><span></span>
+    </div>
+
+    <header class="site-header site-grid">
+      <a class="brand" href="#top" aria-label="Home Air 首页" translate="no"
+        >AQ<sup>™</sup></a
+      >
+      <nav class="site-nav" aria-label="主导航">
+        <ul>
+          <li><a href="#live">实时</a></li>
+          <li><a href="#trend">趋势</a></li>
+          <li><a href="#tongzhou">通州</a></li>
+          <li><a href="#data">数据</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main id="main">
+      <!-- ============ HERO ============ -->
+      <section class="hero site-grid" id="top" aria-labelledby="hero-title">
+        <h1 class="sr-only" id="hero-title" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">家庭空气质量实时读数</h1>
+
+        <p class="hero-label micro">
+          室内 PM<sub>2.5</sub><br />客厅 · 小米空气净化器
+        </p>
+
+        <div class="hero-figure">
+          <span class="hero-value" id="hero-pm25">—</span>
+          <span class="hero-unit">μg/m³</span>
+          <span class="hero-badge" id="hero-level">
+            <i></i><span>读取中</span>
+          </span>
+        </div>
+
+        <dl class="hero-meta">
+          <div>
+            <dt>温度</dt>
+            <dd id="hero-temp">—</dd>
+          </div>
+          <div>
+            <dt>湿度</dt>
+            <dd id="hero-humid">—</dd>
+          </div>
+          <div>
+            <dt>近 24 小时均值</dt>
+            <dd id="hero-avg">—</dd>
+          </div>
+          <div>
+            <dt>数据更新</dt>
+            <dd id="hero-updated">—</dd>
+          </div>
+        </dl>
+      </section>
+
+      <!-- ============ 01 实时 ============ -->
+      <div class="site-grid"><div class="rule"></div></div>
+
+      <section class="section" id="live" aria-labelledby="live-title">
+        <div class="section-head site-grid">
+          <p class="section-index micro">01</p>
+          <h2 class="section-title" id="live-title">实时读数</h2>
+          <p class="section-lede">
+            净化器每五分钟上报一次。以下为当前值，以及过去 24 小时的波动区间。
+          </p>
+        </div>
+
+        <dl class="stats site-grid">
+          <div class="stat">
+            <dt>PM2.5</dt>
+            <dd><span id="stat-pm25">—</span><span class="unit">μg/m³</span></dd>
+            <p class="stat-note" id="stat-pm25-note">—</p>
+          </div>
+          <div class="stat">
+            <dt>空气质量等级</dt>
+            <dd id="stat-level">—</dd>
+            <p class="stat-note" id="stat-level-note">—</p>
+          </div>
+          <div class="stat">
+            <dt>室温</dt>
+            <dd><span id="stat-temp">—</span><span class="unit">°C</span></dd>
+            <p class="stat-note" id="stat-temp-note">—</p>
+          </div>
+          <div class="stat">
+            <dt>相对湿度</dt>
+            <dd><span id="stat-humid">—</span><span class="unit">%</span></dd>
+            <p class="stat-note" id="stat-humid-note">—</p>
+          </div>
+        </dl>
+      </section>
+
+      <!-- ============ 02 趋势 ============ -->
+      <section class="section" id="trend" aria-labelledby="trend-title">
+        <div class="section-head site-grid">
+          <p class="section-index micro">02</p>
+          <h2 class="section-title" id="trend-title">趋势</h2>
+          <p class="section-lede">
+            逐小时均值。虚线为 35 μg/m³ —— 中国《环境空气质量标准》PM2.5 一级限值。
+          </p>
+        </div>
+
+        <div class="site-grid">
+          <figure class="chart-wrap">
+            <figcaption class="chart-head">
+              <span class="chart-title">近 24 小时</span>
+              <span class="chart-legend">
+                <span><i></i>PM2.5</span>
+                <span><i></i>35 限值</span>
+              </span>
+            </figcaption>
+            <svg
+              class="chart-svg"
+              id="chart-24h"
+              role="img"
+              aria-label="近 24 小时 PM2.5 趋势"
+              preserveAspectRatio="none"
+            ></svg>
+          </figure>
+        </div>
+
+        <div class="site-grid">
+          <figure class="chart-wrap">
+            <figcaption class="chart-head">
+              <span class="chart-title">近 7 天</span>
+              <span class="chart-legend">
+                <span id="legend-7d"><i></i>PM2.5</span>
+              </span>
+            </figcaption>
+            <svg
+              class="chart-svg"
+              id="chart-7d"
+              role="img"
+              aria-label="近 7 天 PM2.5 趋势"
+              preserveAspectRatio="none"
+            ></svg>
+          </figure>
+        </div>
+      </section>
+
+      <!-- ============ 03 室内 vs 室外 ============ -->
+      <section class="section" id="compare" aria-labelledby="compare-title">
+        <div class="section-head site-grid">
+          <p class="section-index micro">03</p>
+          <h2 class="section-title" id="compare-title">室内 / 室外</h2>
+          <p class="section-lede" id="compare-lede">
+            同一时刻，客厅与北京通州区的 PM2.5 对照。
+          </p>
+        </div>
+
+        <div class="site-grid">
+          <div class="compare">
+            <div class="compare-col">
+              <p class="micro">
+                <span>室内 · 客厅</span><span id="cmp-indoor-level">—</span>
+              </p>
+              <p>
+                <span class="compare-value" id="cmp-indoor">—</span>
+                <span class="compare-unit">μg/m³</span>
+              </p>
+              <div class="compare-bar"><i id="cmp-indoor-bar"></i></div>
+            </div>
+            <div class="compare-col">
+              <p class="micro">
+                <span>室外 · 北京通州</span
+                ><span id="cmp-outdoor-level">—</span>
+              </p>
+              <p>
+                <span class="compare-value" id="cmp-outdoor">—</span>
+                <span class="compare-unit">μg/m³</span>
+              </p>
+              <div class="compare-bar"><i id="cmp-outdoor-bar"></i></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 04 通州 ============ -->
+      <section class="section" id="tongzhou" aria-labelledby="tz-title">
+        <div class="section-head site-grid">
+          <p class="section-index micro">04</p>
+          <h2 class="section-title" id="tz-title">北京 · 通州</h2>
+          <p class="section-lede">
+            来自 Open-Meteo 空气质量模型（CAMS）的实时数据，每小时更新，无需密钥。
+          </p>
+        </div>
+
+        <div class="site-grid">
+          <p class="strip">
+            <span><i class="dot" id="tz-dot"></i><span id="tz-status">连接中</span></span>
+            <span id="tz-time">—</span>
+            <span>US AQI <b id="tz-aqi">—</b></span>
+          </p>
+        </div>
+
+        <dl class="tz-grid site-grid" style="margin-top: 22px">
+          <div class="tz-item">
+            <dt>PM2.5</dt>
+            <dd><span id="tz-pm25">—</span> μg/m³</dd>
+          </div>
+          <div class="tz-item">
+            <dt>PM10</dt>
+            <dd><span id="tz-pm10">—</span> μg/m³</dd>
+          </div>
+          <div class="tz-item">
+            <dt>臭氧 O₃</dt>
+            <dd><span id="tz-o3">—</span> μg/m³</dd>
+          </div>
+          <div class="tz-item">
+            <dt>二氧化氮 NO₂</dt>
+            <dd><span id="tz-no2">—</span> μg/m³</dd>
+          </div>
+          <div class="tz-item">
+            <dt>二氧化硫 SO₂</dt>
+            <dd><span id="tz-so2">—</span> μg/m³</dd>
+          </div>
+          <div class="tz-item">
+            <dt>一氧化碳 CO</dt>
+            <dd><span id="tz-co">—</span> μg/m³</dd>
+          </div>
+          <div class="tz-item">
+            <dt>欧洲 AQI</dt>
+            <dd><span id="tz-eaqi">—</span></dd>
+          </div>
+          <div class="tz-item">
+            <dt>坐标</dt>
+            <dd style="font-size: 12px">39.90°N 116.70°E</dd>
+          </div>
+        </dl>
+      </section>
+
+      <!-- ============ 05 数据 ============ -->
+      <section class="section" id="data" aria-labelledby="data-title">
+        <div class="section-head site-grid">
+          <p class="section-index micro">05</p>
+          <h2 class="section-title" id="data-title">数据</h2>
+          <p class="section-lede">
+            一份只追加的本地归档，每五分钟写入一行，并按小时聚合后发布到这里。
+          </p>
+        </div>
+
+        <div class="site-grid">
+          <div class="meta-list">
+            <div class="meta-row">
+              <span>累计记录</span><span id="m-rows">—</span>
+            </div>
+            <div class="meta-row">
+              <span>归档起始</span><span id="m-since">—</span>
+            </div>
+            <div class="meta-row">
+              <span>采样间隔</span><span>5 分钟</span>
+            </div>
+            <div class="meta-row">
+              <span>数据来源</span><span>Xiaomi 空气净化器 · Home Assistant</span>
+            </div>
+            <div class="meta-row">
+              <span>室外数据</span><span>Open-Meteo CAMS</span>
+            </div>
+            <div class="meta-row">
+              <span>数据文件</span><span id="m-files">latest.json · history.json</span>
+            </div>
+          </div>
+
+          <div class="meta-copy">
+            <p>
+              室内读数由客厅的小米空气净化器上报，经 Home Assistant
+              采集后写入本机 SQLite 归档库；导出脚本再把它压缩成逐小时序列发布。
+              原始数据只追加、不清洗 —— 包括极高值。
+            </p>
+            <p>
+              温度由传感器以华氏度上报，这里换算为摄氏度显示。室外数据取自
+              <a href="https://open-meteo.com/" target="_blank" rel="noopener"
+                >Open-Meteo</a
+              >
+              的 CAMS 空气质量模型，与家庭设备无关，仅供对照。
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer site-grid">
+      <p class="footer-mark" translate="no">AQ</p>
+      <ul class="footer-links">
+        <li><a href="#live">实时</a></li>
+        <li><a href="#trend">趋势</a></li>
+        <li><a href="#tongzhou">通州</a></li>
+        <li><a href="https://kvkvkvv.site" target="_blank" rel="noopener">kvkvkvv.site</a></li>
+      </ul>
+      <div class="footer-meta">
+        <p>Home Air · <span id="year">2026</span></p>
+        <p>Swiss Grid · 4 COL</p>
+      </div>
+    </footer>
+  </body>
+</html>
