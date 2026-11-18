@@ -35,7 +35,7 @@ home-air/
    → export_data.py（按小时聚合）
    → public/data/*.json
         ├→ Cloudflare KV  ← 前端优先读取这里（实时，无需重新部署）
-        └→ GitHub          ← 长期归档副本
+        └→ GitHub          ← 长期归档副本（前端兜底走 jsDelivr）
 ```
 
 室外数据由浏览器直接向

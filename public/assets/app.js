@@ -421,10 +421,11 @@
     // 数据来源优先级：
     //   1. Cloudflare KV（实时，已开 CORS）—— 任何地方部署都能读到最新
     //   2. 同源静态文件 —— 本地开发 / Cloudflare 自托管时直接用
-    //   3. GitHub raw —— 最后的兜底
+    //   3. jsDelivr —— 最后兜底（国内可达；不用 raw.githubusercontent.com，
+    //      那个域名在国内容易被限速/超时）
     const LIVE = "https://home.kvkvkvv.site/data";
     const GH =
-      "https://raw.githubusercontent.com/kvkvkvv56-ship-it/home-air/main/public/data";
+      "https://cdn.jsdelivr.net/gh/kvkvkvv56-ship-it/home-air@main/public/data";
 
     const latest = await fetchJSON([
       `${LIVE}/latest.json`,
