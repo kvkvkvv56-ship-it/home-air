@@ -3,7 +3,6 @@
   "outputDirectory": "public",
   "cleanUrls": true,
   "trailingSlash": false,
-  "ignoreCommand": "true",
   "headers": [
     {
       "source": "/data/(.*)",
