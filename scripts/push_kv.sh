@@ -12,13 +12,32 @@ if [ ! -f "$TOKEN_FILE" ]; then
   exit 1
 fi
 
-TOKEN="$(tr -d '\n' < "$TOKEN_FILE")"
+BEARER="$(tr -d '\n' < "$TOKEN_FILE")"
+AUTH_HEADER="Authorization: Bearer ${BEARER}"
 LATEST="$ROOT/public/data/latest.json"
 HISTORY="$ROOT/public/data/history.json"
 
 for f in "$LATEST" "$HISTORY"; do
   [ -f "$f" ] || { echo "缺少文件: $f" >&2; exit 1; }
 done
+
+# ---------- 主路径：wrangler 直写 KV（不依赖自定义域 DNS） ----------
+NS_ID="${HOME_AIR_KV_NS:-bdeaaa381c5d4a11918eb6ecc28489e6}"
+if command -v wrangler >/dev/null 2>&1; then
+  ok=0
+  for spec in "data:latest.json|$LATEST" "data:history.json|$HISTORY"; do
+    k="${spec%%|*}"; p="${spec##*|}"
+    if wrangler kv key put "$k" --path "$p" --namespace-id="$NS_ID" --remote \
+         >/tmp/home_air_kv.log 2>&1; then
+      echo "  ✓ $k"
+      ok=$((ok+1))
+    else
+      echo "  ✗ $k: $(tail -2 /tmp/home_air_kv.log | tr '\n' ' ')" >&2
+    fi
+  done
+  if [ "$ok" -eq 2 ]; then exit 0; fi
+  echo "wrangler 写入不完整，改用 HTTP 回退…" >&2
+fi
 
 # 两个 JSON 合成一个请求体（用 python 保证转义正确）
 BODY="$(python3 - "$LATEST" "$HISTORY" <<'PY'
@@ -29,11 +48,11 @@ print(json.dumps({"latest": latest, "history": history}, ensure_ascii=False))
 PY
 )"
 
-HTTP_CODE="$(curl -s -o /tmp/home_air_ingest.out -w '%{http_code}' \
+HTTP_CODE="$(curl -sS -o /tmp/home_air_ingest.out -w '%{http_code}' \
   -X POST "$ENDPOINT" \
-  -H "Authorization: Bearer $TOKEN" \
+  -H "$AUTH_HEADER" \
   -H "Content-Type: application/json" \
-  --data-binary "$BODY" --max-time 20)"
+  --data-binary "$BODY" --max-time 25 2>/tmp/home_air_ingest.err)" || HTTP_CODE="000"
 
 if [ "$HTTP_CODE" = "200" ]; then
   echo "  KV 已更新: $(cat /tmp/home_air_ingest.out)"

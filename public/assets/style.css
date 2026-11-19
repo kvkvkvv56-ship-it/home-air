@@ -1,17 +1,17 @@
 /* ==========================================================================
    home.kvkvkvv.site — 家庭空气质量仪表盘
    Swiss / International Typographic Style
-   全站仅用 Open Sans + Helvetica（无衬线），不使用任何宋体/衬线字体
+   全站仅用 OPPO Sans 4.0 + Helvetica（无衬线），不使用任何宋体/衬线字体
    ========================================================================== */
 
-/* Open Sans 变量字体（latin 子集，官方 3.003 / Google Fonts v44）
-   自托管，避免境内访问 fonts.googleapis.com 超时 */
+/* OPPO Sans 4.0 可变字体（wght 100–700，GB18030 子集）
+   自托管：官方 22MB 全字库按页面用字裁剪到 ~110KB */
 @font-face {
-  font-family: "Open Sans";
+  font-family: "OPPO Sans 4.0";
   font-style: normal;
-  font-weight: 300 800;
+  font-weight: 100 700;
   font-display: swap;
-  src: url("./fonts/OpenSans-latin.woff2") format("woff2");
+  src: url("./fonts/OPPOSans40.woff2") format("woff2");
 }
 
 :root {
@@ -29,9 +29,9 @@
   --header-h: 68px;
   --baseline: 8px;
 
-  --font-sans: "Open Sans", "Helvetica Neue", Helvetica, Arial,
+  --font-sans: "OPPO Sans 4.0", "Helvetica Neue", Helvetica, Arial,
     "PingFang SC", "Hiragino Sans GB", sans-serif;
-  --font-mono: "Open Sans", "Helvetica Neue", Helvetica, Menlo, monospace;
+  --font-mono: "OPPO Sans 4.0", "Helvetica Neue", Helvetica, Menlo, monospace;
 }
 
 *,
