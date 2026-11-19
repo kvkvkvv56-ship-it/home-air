@@ -7,3 +7,6 @@ __pycache__/
 .env
 .env.*
 .vercel
+
+# 截图产物
+preview-*.png

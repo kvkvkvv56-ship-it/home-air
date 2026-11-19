@@ -56,8 +56,7 @@ home-air/
 | 次级文字 | `#707070` |
 | 分隔线 | `rgba(5, 5, 5, 0.16)` |
 | 强调色 | `#0042FF`（仅用于网格辅助线与交互态） |
-| 无衬线 | Helvetica Neue / PingFang SC |
-| 衬线 | Times New Roman / Songti SC |
+| 无衬线 | OPPO Sans 4.0（自托管子集 109KB）/ Helvetica |
 
 按 **G** 键可切换网格辅助线。
 
@@ -69,6 +68,13 @@ npm run serve      # http://127.0.0.1:8788
 ```
 
 ## 部署
+
+线上地址：
+
+| 平台 | 地址 | 说明 |
+|---|---|---|
+| Cloudflare Workers | https://home.kvkvkvv.site | 主站，KV 实时数据 |
+| Vercel | https://home-air.vercel.app | 镜像，GitHub 自动部署 |
 
 ```bash
 # Cloudflare（主站，KV + Workers Assets）
@@ -88,11 +94,18 @@ npx wrangler secret put INGEST_TOKEN
 ## 定时同步
 
 `scripts/sync.sh` 是定时任务入口：导出 → 推 KV → 提交 GitHub。
-建议每 5 分钟运行一次（crontab 或 Hermes cron）：
+已通过 launchd 每 5 分钟运行：
 
 ```
-*/5 * * * * bash ~/projects/home-air/scripts/sync.sh >> ~/projects/home-air/sync.log 2>&1
+~/Library/LaunchAgents/com.hermes.homeair.sync.plist
+日志：sync.out.log / sync.err.log
 ```
+
+`push_kv.sh` 优先用 `wrangler kv key put` 直写 KV（不依赖自定义域 DNS），
+失败才回退到 `/api/ingest` HTTP 接口。
+
+Vercel 配了 `ignoreCommand`：只改 `public/data/` 的提交不会触发重新构建
+（数据走 KV 实时读取），避免每天几百次无谓部署。
 
 ## 数据说明
 
